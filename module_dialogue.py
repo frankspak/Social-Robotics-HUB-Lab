@@ -14,6 +14,7 @@ import time
 import sys
 import codecs
 from naoqi import ALProxy
+import json
 
 from tinyllama.client import TinyLlamaClient
 
@@ -49,10 +50,14 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
         try:
             self.posture = ALProxy("ALRobotPosture", self.strNaoIp, ROBOT_PORT)
             self.aup = ALProxy("ALAnimatedSpeech", self.strNaoIp, ROBOT_PORT)
+            self.tablet_service = ALProxy("ALTabletService", self.strNaoIp, ROBOT_PORT)
+            print(self.tablet_service.showWebview("http://192.168.1.221:8000"))
+            print(self.tablet_service)
+            print("webpage should be displayed")
         except RuntimeError:
             print("Can't connect to Naoqi at ip \"" + self.strNaoIp + "\" on port " + str(ROBOT_PORT) + ".\n"
                                                                                                         "Please check your script arguments. Run with -h option for help.")
-
+    
     def stop(self):
         print("INF: ReceiverModule: stopping...")
         self.memory.unsubscribe(self.getName())
@@ -95,6 +100,8 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
             answer = self.encode(chatbot.respond(message))
             print('DATA RECEIVED AS ANSWER:\n' + answer)
         # text to speech the answer
+        self.create_json(message, answer)
+        print(self.tablet_service.showWebview("http://192.168.1.221:8000"))
         self.log.write('ANS: ' + answer + '\n')
         self.aup.say(answer)
         self.react(answer)
@@ -115,7 +122,21 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
             self.posture.goToPosture("Stand", 1.0)
         elif re.match(".*I.*(lie|lyi).*down.*", s):  # Lying down
             self.posture.goToPosture("LyingBack", 1.0)
-
+   
+    def create_json(self,message, answer):
+        with open("conversation.json","r") as f:
+            current_messages = json.load(f)
+        print('test')
+        current_messages.append({
+            "message":message,
+            "sender": "sent"
+        })
+        current_messages.append({
+            "message":answer,
+            "sender": "received"
+        })
+        with open("conversation.json","w") as f:
+            json.dump(current_messages, f)
 
 def main():
     """ Main entry point
@@ -226,7 +247,6 @@ def main():
         print("Interrupted by user, shutting down")
         myBroker.shutdown()
         sys.exit(0)
-
 
 if __name__ == "__main__":
     main()

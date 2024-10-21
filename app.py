@@ -47,15 +47,16 @@ html_content = '''
             margin-bottom: 20px;
         }
         .message {
+            font-size: 1.5em;
             margin: 10px 0;
         }
         .user {
             font-weight: bold;
-            color: blue;
+            color: red;
         }
         .bot {
             font-weight: bold;
-            color: green;
+            color: black;
         }
     </style>
 </head>
