@@ -53,13 +53,13 @@ def create_conversation(texts):
             background-color: #fff;
             border: 1px solid #ddd;
             border-bottom-left-radius: 0;
-            align-self: flex-start;
+            align-self: flex-end;
         }
 
         .message.sent {
             background-color: #DCF8C6;
             border-bottom-right-radius: 0;
-            align-self: flex-end;
+            align-self: flex-start;
         }
 
         .message-text {
@@ -72,7 +72,7 @@ def create_conversation(texts):
 
                 <div class="chat-body">
     '''
-    
+    texts.reverse()
     for message in texts:
         message_class = "sent" if message["sender"] == "sent" else "received"
         html += f'''

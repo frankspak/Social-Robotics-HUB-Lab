@@ -20,6 +20,8 @@ from tinyllama.client import TinyLlamaClient
 
 from oaichat.oaiclient import OaiClient
 
+with open("conversation.json", 'w') as json_file:
+    json.dump([], json_file)
 
 class DialogueSpeechReceiverModule(naoqi.ALModule):
     """
@@ -39,6 +41,8 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
         except BaseException, err:
             print("ERR: ReceiverModule: loading error: %s" % str(err))
 
+        
+
     def __del__(self):
         print("INF: ReceiverModule.__del__: cleaning everything")
         self.stop()
@@ -54,6 +58,7 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
             print(self.tablet_service.showWebview("http://192.168.1.221:8000"))
             print(self.tablet_service)
             print("webpage should be displayed")
+            
         except RuntimeError:
             print("Can't connect to Naoqi at ip \"" + self.strNaoIp + "\" on port " + str(ROBOT_PORT) + ".\n"
                                                                                                         "Please check your script arguments. Run with -h option for help.")
@@ -61,6 +66,11 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
     def stop(self):
         print("INF: ReceiverModule: stopping...")
         self.memory.unsubscribe(self.getName())
+        try:
+            self.tablet_service.hideWebview()
+            print("webpage should be hidden")
+        except AttributeError:
+            print("No tablet service found")
         print("INF: ReceiverModule: stopped!")
 
     def version(self):
@@ -97,12 +107,14 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
             print('ERROR, DEFAULT ANSWER:\n' + answer)
         else:
             self.misunderstandings = 0
+            self.create_json(message, "sent")
             answer = self.encode(chatbot.respond(message))
             print('DATA RECEIVED AS ANSWER:\n' + answer)
         # text to speech the answer
-        self.create_json(message, answer)
-        print(self.tablet_service.showWebview("http://192.168.1.221:8000"))
+        
+        
         self.log.write('ANS: ' + answer + '\n')
+        self.create_json(answer, "received")
         self.aup.say(answer)
         self.react(answer)
         # time.sleep(2)
@@ -115,6 +127,10 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
             # asking the Speech Recognition to LISTEN AGAIN
             SpeechRecognition.startRecording()
 
+        if not hasattr(self, 'tablet_service'):
+            self.tablet_service = ALProxy("ALTabletService", self.strNaoIp, ROBOT_PORT)
+        print(self.tablet_service.showWebview("http://192.168.1.221:8000"))
+
     def react(self, s):
         if re.match(".*I.*sit down.*", s):  # Sitting down
             self.posture.goToPosture("Sit", 1.0)
@@ -123,21 +139,20 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
         elif re.match(".*I.*(lie|lyi).*down.*", s):  # Lying down
             self.posture.goToPosture("LyingBack", 1.0)
    
-    def create_json(self,message, answer):
+    def create_json(self,message, role):
         with open("conversation.json","r") as f:
             current_messages = json.load(f)
         print('test')
         current_messages.append({
             "message":message,
-            "sender": "sent"
+            "sender": role
         })
-        current_messages.append({
-            "message":answer,
-            "sender": "received"
-        })
+
         with open("conversation.json","w") as f:
             json.dump(current_messages, f)
+        print(self.tablet_service.showWebview("http://192.168.1.221:8000"))
 
+    
 def main():
     """ Main entry point
 
