@@ -4,9 +4,14 @@ import json
 from naoqi import ALProxy
 from tinyllama.client import TinyLlamaClient
 from oaichat.oaiclient import OaiClient
+import socket
 
 PEPPER_IP = "192.168.1.140"
 PORT = 9559
+
+hostname = socket.gethostname()
+ip_address_host = socket.gethostbyname(hostname)
+print(ip_address_host)
 global chatbot 
 chatbot = TinyLlamaClient(user="1998")
 
@@ -200,7 +205,7 @@ def send_input():
     with open("conversation.json", "w+") as f:
         json.dump(texts, f)
     # tablet_service = ALProxy("ALTabletService", PEPPER_IP, PORT)
-    # tablet_service.showWebview("http://192.168.1.24:5000")
+    # tablet_service.showWebview("http://{}:5000".format(ip_address_host))
     answer = chatbot.respond(text_input)
     texts.append({
         "message":  answer,
@@ -209,7 +214,7 @@ def send_input():
     # tts.say(answer)
 
     # tablet_service = ALProxy("ALTabletService", PEPPER_IP, PORT)
-    # tablet_service.showWebview("http://192.168.1.24:5000")
+    # tablet_service.showWebview("http://{}:5000".format(ip_address_host))
     with open("conversation.json", "w+") as f:
         json.dump(texts, f)
 

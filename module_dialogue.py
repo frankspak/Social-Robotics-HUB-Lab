@@ -3,6 +3,7 @@
 
 ROBOT_PORT = 9559 # Robot
 ROBOT_IP = "192.168.1.140" # Pepper default
+
 #ltfc3fdb42c2a6.local
 #192.168.1.140
 AUTODEC = True
@@ -15,6 +16,7 @@ import sys
 import codecs
 from naoqi import ALProxy
 import json
+import socket
 
 from tinyllama.client import TinyLlamaClient
 
@@ -23,6 +25,9 @@ from oaichat.oaiclient import OaiClient
 with open("conversation.json", 'w') as json_file:
     json.dump([], json_file)
 
+hostname = socket.gethostname()
+## getting the IP address using socket.gethostbyname() method
+ip_address_host = socket.gethostbyname(hostname)
 class DialogueSpeechReceiverModule(naoqi.ALModule):
     """
     Use this object to get call back from the ALMemory of the naoqi world.
@@ -55,7 +60,7 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
             self.posture = ALProxy("ALRobotPosture", self.strNaoIp, ROBOT_PORT)
             self.aup = ALProxy("ALAnimatedSpeech", self.strNaoIp, ROBOT_PORT)
             self.tablet_service = ALProxy("ALTabletService", self.strNaoIp, ROBOT_PORT)
-            print(self.tablet_service.showWebview("http://192.168.1.221:8000"))
+            print(self.tablet_service.showWebview("http://{}:5000".format(ip_address_host)))
             print(self.tablet_service)
             print("webpage should be displayed")
             
@@ -129,7 +134,7 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
 
         if not hasattr(self, 'tablet_service'):
             self.tablet_service = ALProxy("ALTabletService", self.strNaoIp, ROBOT_PORT)
-        print(self.tablet_service.showWebview("http://192.168.1.221:8000"))
+        print(self.tablet_service.showWebview("http://{}:5000".format(ip_address_host)))
 
     def react(self, s):
         if re.match(".*I.*sit down.*", s):  # Sitting down
@@ -150,7 +155,7 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
 
         with open("conversation.json","w") as f:
             json.dump(current_messages, f)
-        print(self.tablet_service.showWebview("http://192.168.1.221:8000"))
+        print(self.tablet_service.showWebview("http://{}:5000".format(ip_address_host)))
 
     
 def main():
