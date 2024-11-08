@@ -1,105 +1,221 @@
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from flask import Flask, render_template_string, request, jsonify
+from flask_cors import CORS
 import json
+from naoqi import ALProxy
+from tinyllama.client import TinyLlamaClient
+from oaichat.oaiclient import OaiClient
+
+PEPPER_IP = "192.168.1.140"
+PORT = 9559
+global chatbot 
+chatbot = TinyLlamaClient(user="1998")
 
 # Create an instance of FastAPI
-app = FastAPI()
+app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+CORS(app)
 
 def create_conversation(texts):
-    html = '''
-        <!DOCTYPE html>
-        <html lang="en">
+    html = """
+    <!DOCTYPE html>
+    <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=1280, user-scalable=no" />
             <title>WhatsApp Conversation</title>
+            <script>
+                async function sendText() {
+                    // Get the input field value
+                    const text = document.getElementById("inputText").value;
+
+                    // Endpoint URL for the FastAPI server
+                    const url = "http://127.0.0.1:5000/send-input";
+
+                    // Send POST request with the text data
+                    try {
+                        const response = await fetch(url, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ "text_input": text })
+                        });                        
+                    } catch (error) {
+                        console.error("Error:", error);
+                    }
+                }
+            </script>
             <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #ece5dd;
-            margin: 0;
-            padding: 0;
-        }
 
-        .chat-window {
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            background-color: #fff;
-            display: flex;
-            flex-direction: column;
-        }
+                * {
+                    box-sizing: border-box;
+                    margin: 0;
+                    padding: 0;
+                }
 
-        .chat-body {
-            flex: 1;
-            padding: 15px;
-            background-color: #e5ddd5;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            
-        }
+                body {
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    flex-direction: column;
+                    height: 100vh;
+                    background-color: #ece5dd;
+                }
 
-        .message {
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 10px;
-            position: relative;
-            display: block;
-            clear: both; /* Ensures no overlapping */
-            max-width: 75%;
-            word-wrap: break-word; /* Prevents long words from overflowing */
-        }
+                .chat-window {
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+                    background-color: #fff;
+                    display: flex;
+                    flex-direction: column;
+                }
 
-        .message.received {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-bottom-left-radius: 0;
-            align-self: flex-end;
-        }
+                .chat-body {
+                    flex: 1;
+                    padding: 15px;
+                    background-color: #e5ddd5;
+                    overflow-y: auto;
+                    display: flex;
+                    flex-direction: column;
+                }
 
-        .message.sent {
-            background-color: #DCF8C6;
-            border-bottom-right-radius: 0;
-            align-self: flex-start;
-        }
+                .message {
+                    margin-bottom: 10px;
+                    padding: 10px;
+                    border-radius: 10px;
+                    position: relative;
+                    display: block;
+                    clear: both; /* Ensures no overlapping */
+                    max-width: 75%;
+                    word-wrap: break-word; /* Prevents long words from overflowing */
+                }
 
-        .message-text {
-            font-size: 3vw;
-        }
-        </style>
+                .message.received {
+                    background-color: #fff;
+                    border: 1px solid #ddd;
+                    border-bottom-left-radius: 0;
+                    align-self: flex-end;
+                }
+
+                .message.sent {
+                    background-color: #DCF8C6;
+                    border-bottom-right-radius: 0;
+                    align-self: flex-start;
+                }
+
+                .message-text {
+                    font-size: 3vw;
+                }
+
+                .chat-input-container {
+                    display: flex;
+                    align-items: center;
+                    padding: 10px;
+                    position: fixed;
+                    bottom: 0;
+                    width: 100%;
+                    background-color: #f0f0f0;
+                    border-top: 1px solid #e0e0e0;
+                }
+
+                .chat-input {
+                    flex-grow: 1;
+                    padding: 10px;
+                    border: none;
+                    border-radius: 20px;
+                    background-color: #fff;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    font-size: 16px;
+                    resize: none;
+                    outline: none;
+                    margin-right: 10px;
+                }
+
+                .send-button {
+                    padding: 10px 20px;
+                    background-color: #25d366;
+                    border: none;
+                    border-radius: 50%;
+                    color: white;
+                    font-weight: bold;
+                    cursor: pointer;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                }
+
+                .send-button:active {
+                    transform: scale(0.95);
+                }
+
+                .chat-input-container,
+                .chat-input,
+                .send-button {
+                    height: 40px;
+                    max-height: 40px;
+                }
+            </style>
         </head>
         <body>
             <div class="chat-window">
 
                 <div class="chat-body">
-    '''
+    """
     texts.reverse()
     for message in texts:
         message_class = "sent" if message["sender"] == "sent" else "received"
-        html += f'''
-        <div class="message {message_class}">
-            <span class="message-text">{message['message']}</span>
-        </div>
-        '''
-    html += '''
+        html += "<div class=\"message " + message_class + """\">
+            <span class="message-text">""" + message['message'] + """</span>
+        </div>"""
+    html += """
+                    <div class="chat-input-container">
+                        <textarea class="chat-input" placeholder="Type a message" id="inputText"></textarea>
+                        <button class="send-button" onclick="sendText()">Send</button>
+                    </div>
                 </div>
             </div>
         </body>
     </html>
-    '''
-
+    """
     return html
 
 # Define the route for the home page
-@app.get("/", response_class=HTMLResponse)
-async def home():
+@app.route("/")
+def home():
     with open("conversation.json", "r+") as f:
         texts = json.load(f)
-    html_content = create_conversation(texts)
-    return HTMLResponse(content=html_content)
+    html = create_conversation(texts)
+    return render_template_string(html)
 
+@app.route("/send-input", methods= ["POST"])
+def send_input():
+    with open("conversation.json", "r+") as f:
+        texts = json.load(f)
+    data = request.get_json()
+    text_input = data.get("text_input")
+    print(text_input)
+    # tts = ALProxy("ALTextToSpeech", PEPPER_IP, PORT)
+
+    texts.append({
+        "message": text_input,
+        "sender": "sent"
+    })
+    with open("conversation.json", "w+") as f:
+        json.dump(texts, f)
+    # tablet_service = ALProxy("ALTabletService", PEPPER_IP, PORT)
+    # tablet_service.showWebview("http://192.168.1.24:5000")
+    answer = chatbot.respond(text_input)
+    texts.append({
+        "message":  answer,
+        "sender": "received"
+    })
+    # tts.say(answer)
+
+    # tablet_service = ALProxy("ALTabletService", PEPPER_IP, PORT)
+    # tablet_service.showWebview("http://192.168.1.24:5000")
+    with open("conversation.json", "w+") as f:
+        json.dump(texts, f)
+
+    return "test"
 
 
 # Run the app (when using uvicorn)
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    app.run(host='0.0.0.0', port=5000, debug=False)
