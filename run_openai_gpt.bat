@@ -1,5 +1,5 @@
 @echo off
-start cmd /k uvicorn display:app --host 0.0.0.0 --port 8000
+start cmd /k python display.py
 timeout /t 10
 start cmd /k python3 startDialogueServer.py --server openai
 timeout /t 10
