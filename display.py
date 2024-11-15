@@ -90,11 +90,11 @@ def create_conversation(texts):
                     display: flex;
                     flex-direction: column;
                     height: 100vh;
-                    background-color: #ece5dd;
+                    background-color: #01a7c9;
                 }
 
                 .chat-window {
-                    background-color: #ece5dd;
+                    background-color: #01a7c9;
                     display: flex;
                     flex-direction: column;
                 }
@@ -102,7 +102,7 @@ def create_conversation(texts):
                 .chat-body {
                     flex: 1;
                     padding: 15px;
-                    background-color: #ece5dd;
+                    background-color: #01a7c9;
                     display: flex;
                     flex-direction: column;
                     margin-bottom: 20px;
@@ -120,14 +120,15 @@ def create_conversation(texts):
                 }
 
                 .message.sent {
-                    background-color: #fff;
+                    background-color: #ff3f2c;
+                    color: #fff;
                     border: 1px solid #ddd;
                     border-bottom-right-radius: 0;
                     align-self: flex-end;
                 }
 
                 .message.received {
-                    background-color: #DCF8C6;
+                    background-color: #fff;
                     border-bottom-left-radius: 0;
                     align-self: flex-start;
                 }
@@ -162,7 +163,7 @@ def create_conversation(texts):
 
                 .send-button {
                     padding: 10px 20px;
-                    background-color: #25d366;
+                    background-color: #333333;
                     border: none;
                     border-radius: 50%;
                     color: white;
