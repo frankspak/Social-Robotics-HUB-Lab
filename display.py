@@ -94,7 +94,6 @@ def create_conversation(texts):
                 }
 
                 .chat-window {
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
                     background-color: #ece5dd;
                     display: flex;
                     flex-direction: column;
@@ -104,9 +103,9 @@ def create_conversation(texts):
                     flex: 1;
                     padding: 15px;
                     background-color: #ece5dd;
-                    overflow-y: auto;
                     display: flex;
                     flex-direction: column;
+                    margin-bottom: 20px;
                 }
 
                 .message {
@@ -120,16 +119,16 @@ def create_conversation(texts):
                     word-wrap: break-word; /* Prevents long words from overflowing */
                 }
 
-                .message.received {
+                .message.sent {
                     background-color: #fff;
                     border: 1px solid #ddd;
-                    border-bottom-left-radius: 0;
+                    border-bottom-right-radius: 0;
                     align-self: flex-end;
                 }
 
-                .message.sent {
+                .message.received {
                     background-color: #DCF8C6;
-                    border-bottom-right-radius: 0;
+                    border-bottom-left-radius: 0;
                     align-self: flex-start;
                 }
 
