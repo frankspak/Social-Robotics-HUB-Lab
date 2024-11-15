@@ -31,13 +31,21 @@ def create_conversation(texts):
             <title>WhatsApp Conversation</title>
             <script>
                 async function sendText() {
-                    // Get the input field value
-                    const text = document.getElementById("inputText").value;
 
-                    // Endpoint URL for the FastAPI server
+                    let textbox = document.getElementById("inputText");
+                    const text = textbox.value;
+                    textbox.value = '';
+                    let messageBody = document.querySelector('.chat-body');
+
+                    let newMessageHTML = `
+                        <div class="message sent">
+                        <span class="message-text">` + text + `</span>
+                    </div>`;
+
+                    messageBody.insertAdjacentHTML('afterbegin', newMessageHTML);
+
                     const url = "http://127.0.0.1:5000/send-input";
 
-                    // Send POST request with the text data
                     try {
                         const response = await fetch(url, {
                             method: "POST",
@@ -45,7 +53,17 @@ def create_conversation(texts):
                                 "Content-Type": "application/json"
                             },
                             body: JSON.stringify({ "text_input": text })
-                        });                        
+                        });
+
+                        const data = await response.json();
+                        const answer = data.answer; 
+
+                        let newResponseHTML = `
+                            <div class="message received">
+                            <span class="message-text">` + answer + `</span>
+                        </div>`;
+
+                        messageBody.insertAdjacentHTML('afterbegin', newResponseHTML);                        
                     } catch (error) {
                         console.error("Error:", error);
                     }
@@ -204,8 +222,7 @@ def send_input():
     })
     with open("conversation.json", "w+") as f:
         json.dump(texts, f)
-    # tablet_service = ALProxy("ALTabletService", PEPPER_IP, PORT)
-    # tablet_service.showWebview("http://{}:5000".format(ip_address_host))
+
     answer = chatbot.respond(text_input)
     texts.append({
         "message":  answer,
@@ -213,12 +230,10 @@ def send_input():
     })
     # tts.say(answer)
 
-    # tablet_service = ALProxy("ALTabletService", PEPPER_IP, PORT)
-    # tablet_service.showWebview("http://{}:5000".format(ip_address_host))
     with open("conversation.json", "w+") as f:
         json.dump(texts, f)
 
-    return "test"
+    return jsonify({"answer":answer})
 
 
 # Run the app (when using uvicorn)
