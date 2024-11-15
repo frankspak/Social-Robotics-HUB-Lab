@@ -1,5 +1,5 @@
 @echo off
-start cmd /k python display.py
+start cmd /k python display.py --server tinyllama
 timeout /t 10
 start cmd /k python3 startDialogueServer.py --server tinyllama
 timeout /t 10

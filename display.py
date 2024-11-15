@@ -5,6 +5,7 @@ from naoqi import ALProxy
 from tinyllama.client import TinyLlamaClient
 from oaichat.oaiclient import OaiClient
 import socket
+from optparse import OptionParser
 
 PEPPER_IP = "192.168.1.140"
 PORT = 9559
@@ -12,8 +13,12 @@ PORT = 9559
 hostname = socket.gethostname()
 ip_address_host = socket.gethostbyname(hostname)
 print(ip_address_host)
-global chatbot 
-chatbot = TinyLlamaClient(user="1998")
+
+parser = OptionParser()
+parser.add_option("--server",
+                  help="Server to use (tinyllama or openai).",
+    dest="server")
+parser.set_defaults(server='openai')
 
 # Create an instance of FastAPI
 app = Flask(__name__)
@@ -238,4 +243,11 @@ def send_input():
 
 # Run the app (when using uvicorn)
 if __name__ == "__main__":
+    (opts, args_) = parser.parse_args()
+    participantId = input('Participant ID: ')
+    if opts.server == 'tinyllama':
+        chatbot = TinyLlamaClient(user=participantId)
+    else:
+        chatbot = OaiClient(user=participantId)
+
     app.run(host='0.0.0.0', port=5000, debug=False)

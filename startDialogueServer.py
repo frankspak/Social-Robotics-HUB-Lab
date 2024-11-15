@@ -10,7 +10,7 @@ parser.add_option("--prompt",
     help="Path to propot file.",
     dest="prompt")
 parser.add_option("--server",
-                  help="Server to use (tinyllama or openai).",
+    help="Server to use (tinyllama or openai).",
     dest="server")
 parser.set_defaults(server='openai')
 parser.set_defaults(prompt='pepper')

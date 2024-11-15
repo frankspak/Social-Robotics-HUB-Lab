@@ -1,5 +1,5 @@
 @echo off
-start cmd /k python display.py
+start cmd /k python display.py --server openai
 timeout /t 10
 start cmd /k python3 startDialogueServer.py --server openai
 timeout /t 10
