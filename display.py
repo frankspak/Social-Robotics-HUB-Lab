@@ -13,7 +13,8 @@ PORT = 9559
 hostname = socket.gethostname()
 ip_address_host = socket.gethostbyname(hostname)
 print(ip_address_host)
-
+with open("conversation.json", 'w') as json_file:
+    json.dump([], json_file)
 parser = OptionParser()
 parser.add_option("--server",
                   help="Server to use (tinyllama or openai).",
@@ -47,7 +48,8 @@ def create_conversation(texts):
                         <span class="message-text">` + text + `</span>
                     </div>`;
 
-                    messageBody.insertAdjacentHTML('afterbegin', newMessageHTML);
+                    messageBody.insertAdjacentHTML('beforeend', newMessageHTML);
+                    document.documentElement.scrollTop = document.documentElement.scrollHeight;
 
                     const url = "http://127.0.0.1:5000/send-input";
 
@@ -68,7 +70,8 @@ def create_conversation(texts):
                             <span class="message-text">` + answer + `</span>
                         </div>`;
 
-                        messageBody.insertAdjacentHTML('afterbegin', newResponseHTML);                        
+                        messageBody.insertAdjacentHTML('beforeend', newResponseHTML);   
+                        document.documentElement.scrollTop = document.documentElement.scrollHeight;                     
                     } catch (error) {
                         console.error("Error:", error);
                     }
@@ -92,7 +95,7 @@ def create_conversation(texts):
 
                 .chat-window {
                     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-                    background-color: #fff;
+                    background-color: #ece5dd;
                     display: flex;
                     flex-direction: column;
                 }
@@ -100,7 +103,7 @@ def create_conversation(texts):
                 .chat-body {
                     flex: 1;
                     padding: 15px;
-                    background-color: #e5ddd5;
+                    background-color: #ece5dd;
                     overflow-y: auto;
                     display: flex;
                     flex-direction: column;
@@ -186,17 +189,17 @@ def create_conversation(texts):
 
                 <div class="chat-body">
     """
-    texts.reverse()
     for message in texts:
         message_class = "sent" if message["sender"] == "sent" else "received"
         html += "<div class=\"message " + message_class + """\">
             <span class="message-text">""" + message['message'] + """</span>
         </div>"""
     html += """
-                    <div class="chat-input-container">
-                        <textarea class="chat-input" placeholder="Type a message" id="inputText"></textarea>
-                        <button class="send-button" onclick="sendText()">Send</button>
-                    </div>
+                    
+                </div>
+                <div class="chat-input-container">
+                    <textarea class="chat-input" placeholder="Type a message" id="inputText"></textarea>
+                    <button class="send-button" onclick="sendText()">Send</button>
                 </div>
             </div>
         </body>
