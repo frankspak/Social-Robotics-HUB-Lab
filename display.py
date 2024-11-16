@@ -35,50 +35,7 @@ def create_conversation(texts):
             <meta charset="UTF-8">
             <meta name="viewport" content="width=1280, user-scalable=no" />
             <title>WhatsApp Conversation</title>
-            <script>
-                async function sendText() {
-
-                    let textbox = document.getElementById("inputText");
-                    const text = textbox.value;
-                    textbox.value = '';
-                    let messageBody = document.querySelector('.chat-body');
-
-                    let newMessageHTML = `
-                        <div class="message sent">
-                        <span class="message-text">` + text + `</span>
-                    </div>`;
-
-                    messageBody.insertAdjacentHTML('beforeend', newMessageHTML);
-                    document.documentElement.scrollTop = document.documentElement.scrollHeight;
-
-                    const url = "http://127.0.0.1:5000/send-input";
-
-                    try {
-                        const response = await fetch(url, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({ "text_input": text })
-                        });
-
-                        const data = await response.json();
-                        const answer = data.answer; 
-
-                        let newResponseHTML = `
-                            <div class="message received">
-                            <span class="message-text">` + answer + `</span>
-                        </div>`;
-
-                        messageBody.insertAdjacentHTML('beforeend', newResponseHTML);   
-                        document.documentElement.scrollTop = document.documentElement.scrollHeight;                     
-                    } catch (error) {
-                        console.error("Error:", error);
-                    }
-                }
-            </script>
             <style>
-
                 * {
                     box-sizing: border-box;
                     margin: 0;
@@ -105,7 +62,7 @@ def create_conversation(texts):
                     background-color: #01a7c9;
                     display: flex;
                     flex-direction: column;
-                    margin-bottom: 20px;
+                    margin-bottom: 40px;
                 }
 
                 .message {
@@ -122,7 +79,6 @@ def create_conversation(texts):
                 .message.sent {
                     background-color: #ff3f2c;
                     color: #fff;
-                    border: 1px solid #ddd;
                     border-bottom-right-radius: 0;
                     align-self: flex-end;
                 }
@@ -144,7 +100,7 @@ def create_conversation(texts):
                     position: fixed;
                     bottom: 0;
                     width: 100%;
-                    background-color: #f0f0f0;
+                    background-color: #c0c0c0;
                     border-top: 1px solid #e0e0e0;
                 }
 
@@ -158,7 +114,8 @@ def create_conversation(texts):
                     font-size: 16px;
                     resize: none;
                     outline: none;
-                    margin-right: 10px;
+                    margin: 10px;
+                    height: 50px;
                 }
 
                 .send-button {
@@ -176,13 +133,62 @@ def create_conversation(texts):
                     transform: scale(0.95);
                 }
 
-                .chat-input-container,
-                .chat-input,
-                .send-button {
-                    height: 40px;
-                    max-height: 40px;
+                .chat-input-container {
+                    height: 60px;
                 }
             </style>
+            <script>
+                async function sendText() {
+                    let textbox = document.getElementById("inputText");
+                    const text = textbox.value;
+                    textbox.value = '';
+                    let messageBody = document.querySelector('.chat-body');
+                    let newMessageHTML = `
+                        <div class="message sent">
+                        <span class="message-text">` + text + `</span>
+                    </div>`;
+
+                    messageBody.insertAdjacentHTML('beforeend', newMessageHTML);
+                    scrollToBottom()
+
+                    const url = "http://127.0.0.1:5000/send-input";
+
+                    try {
+                        const response = await fetch(url, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ "text_input": text })
+                        });
+
+                        const data = await response.json();
+                        const answer = data.answer; 
+
+                        let newResponseHTML = `
+                            <div class="message received">
+                            <span class="message-text">` + answer + `</span>
+                        </div>`;
+
+                        messageBody.insertAdjacentHTML('beforeend', newResponseHTML);   
+                        scrollToBottom()
+                    } catch (error) {
+                        console.error("Error:", error);
+                    }
+                }
+
+                function scrollToBottom() {
+                    window.scrollTo(0, document.body.scrollHeight);
+                }
+
+                window.onload = () => {
+                    // Disable browser's auto-scroll restoration
+                    if ('scrollRestoration' in history) {
+                        history.scrollRestoration = 'manual';
+                }
+                scrollToBottom();
+                };
+            </script>
         </head>
         <body>
             <div class="chat-window">
