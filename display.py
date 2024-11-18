@@ -13,8 +13,8 @@ PORT = 9559
 hostname = socket.gethostname()
 ip_address_host = socket.gethostbyname(hostname)
 print(ip_address_host)
-with open("conversation.json", 'w') as json_file:
-    json.dump([], json_file)
+# with open("conversation.json", 'w') as json_file:
+#     json.dump([], json_file)
 parser = OptionParser()
 parser.add_option("--server",
                   help="Server to use (tinyllama or openai).",
@@ -138,56 +138,38 @@ def create_conversation(texts):
                 }
             </style>
             <script>
-                async function sendText() {
-                    let textbox = document.getElementById("inputText");
-                    const text = textbox.value;
+                function sendText() {
+                    var textbox = document.getElementById("inputText");
+                    var text = textbox.value;
                     textbox.value = '';
-                    let messageBody = document.querySelector('.chat-body');
-                    let newMessageHTML = `
+                    var messageBody = document.querySelector('.chat-body');
+                    var newMessageHTML = `
                         <div class="message sent">
                         <span class="message-text">` + text + `</span>
                     </div>`;
 
                     messageBody.insertAdjacentHTML('beforeend', newMessageHTML);
-                    scrollToBottom()
 
-                    const url = "http://127.0.0.1:5000/send-input";
-
-                    try {
-                        const response = await fetch(url, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({ "text_input": text })
-                        });
-
-                        const data = await response.json();
-                        const answer = data.answer; 
-
-                        let newResponseHTML = `
+                    var url = "http://192.168.1.24:5000/send-input";
+                    fetch(url, {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({ "text_input": text })
+                    })
+                    .then(function(response) {
+                        return response.json();  // Parse the JSON body of the response
+                    })
+                    .then(function(data) {
+                        var answer = data.answer
+                        var newResponseHTML = `
                             <div class="message received">
                             <span class="message-text">` + answer + `</span>
                         </div>`;
 
                         messageBody.insertAdjacentHTML('beforeend', newResponseHTML);   
-                        scrollToBottom()
-                    } catch (error) {
-                        console.error("Error:", error);
-                    }
+                    });
                 }
 
-                function scrollToBottom() {
-                    window.scrollTo(0, document.body.scrollHeight);
-                }
-
-                window.onload = () => {
-                    // Disable browser's auto-scroll restoration
-                    if ('scrollRestoration' in history) {
-                        history.scrollRestoration = 'manual';
-                }
-                scrollToBottom();
-                };
             </script>
         </head>
         <body>
@@ -228,7 +210,7 @@ def send_input():
     data = request.get_json()
     text_input = data.get("text_input")
     print(text_input)
-    # tts = ALProxy("ALTextToSpeech", PEPPER_IP, PORT)
+    tts = ALProxy("ALTextToSpeech", PEPPER_IP, PORT)
 
     texts.append({
         "message": text_input,
@@ -242,7 +224,7 @@ def send_input():
         "message":  answer,
         "sender": "received"
     })
-    # tts.say(answer)
+    tts.say(str(answer))
 
     with open("conversation.json", "w+") as f:
         json.dump(texts, f)
