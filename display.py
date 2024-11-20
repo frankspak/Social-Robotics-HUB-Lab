@@ -18,8 +18,13 @@ print(ip_address_host)
 parser = OptionParser()
 parser.add_option("--server",
                   help="Server to use (tinyllama or openai).",
-    dest="server")
-parser.set_defaults(server='openai')
+                  dest="server")
+parser.add_option("--userid",
+                  help="participant id to use for llm.",
+                  dest="userid")
+parser.set_defaults(
+    server='openai',
+    userid='2001')
 
 # Create an instance of FastAPI
 app = Flask(__name__)
@@ -235,7 +240,7 @@ def send_input():
 # Run the app (when using uvicorn)
 if __name__ == "__main__":
     (opts, args_) = parser.parse_args()
-    participantId = input('Participant ID: ')
+    participantId = opts.userid
     if opts.server == 'tinyllama':
         chatbot = TinyLlamaClient(user=participantId)
     else:

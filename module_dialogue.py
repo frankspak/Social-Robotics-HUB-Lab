@@ -175,18 +175,21 @@ def main():
     parser.add_option("--server",
                   help="Server to use (tinyllama or openai).",
                   dest="server")
+    parser.add_option("--userid",
+                  help="participant id to use for llm.",
+                  dest="userid")
     parser.set_defaults(
-    pip=ROBOT_IP,
-    pport=ROBOT_PORT,
-    server="openai"
+        pip=ROBOT_IP,
+        pport=ROBOT_PORT,
+        server="openai",
+        userid='2001'
     )
 
     (opts, args_) = parser.parse_args()
     pip = opts.pip
     pport = opts.pport
     server = opts.server
-
-    participantId = input('Participant ID: ')  # Ensure participant ID is asked before initializing chatbot
+    participantId = opts.userid  # Ensure participant ID is asked before initializing chatbot
     global chatbot
     # Initialize the appropriate chatbot based on the server command line argument
     if server.lower() == "tinyllama":
