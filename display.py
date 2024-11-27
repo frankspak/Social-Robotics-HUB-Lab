@@ -13,8 +13,8 @@ PORT = 9559
 hostname = socket.gethostname()
 ip_address_host = socket.gethostbyname(hostname)
 print(ip_address_host)
-# with open("conversation.json", 'w') as json_file:
-#     json.dump([], json_file)
+with open("conversation.json", 'w') as json_file:
+    json.dump([], json_file)
 parser = OptionParser()
 parser.add_option("--server",
                   help="Server to use (tinyllama or openai).",
@@ -25,7 +25,8 @@ parser.add_option("--userid",
 parser.set_defaults(
     server='openai',
     userid='2001')
-
+# global tts    tts = ALProxy("ALTextToSpeech", PEPPER_IP, PORT)
+# tts = ALProxy("ALTextToSpeech", PEPPER_IP, PORT)
 # Create an instance of FastAPI
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -142,7 +143,25 @@ def create_conversation(texts):
                     height: 60px;
                 }
             </style>
-            <script>
+        </head>
+        <body>
+            <div class="chat-window">
+                <div class="chat-body">
+"""
+    for message in texts:
+        message_class = "sent" if message["sender"] == "sent" else "received"
+        html += "<div class=\"message " + message_class + """\">
+            <span class="message-text">""" + message['message'] + """</span>
+        </div>"""
+    html += """    
+                </div>
+                <div class="chat-input-container">
+                    <textarea class="chat-input" placeholder="Type a message" id="inputText"></textarea>
+                    <button class="send-button" onclick="sendText()">Send</button>
+                </div>
+            </div>
+        </body>
+                    <script>
                 function sendText() {
                     var textbox = document.getElementById("inputText");
                     var text = textbox.value;
@@ -153,9 +172,11 @@ def create_conversation(texts):
                         <span class="message-text">` + text + `</span>
                     </div>`;
 
+                    console.log(text)
+
                     messageBody.insertAdjacentHTML('beforeend', newMessageHTML);
 
-                    var url = "http://192.168.1.24:5000/send-input";
+                    var url = "http://""" + ip_address_host + """:5000/send-input";
                     fetch(url, {
                         method: "POST",
                         headers: {"Content-Type": "application/json"},
@@ -174,28 +195,15 @@ def create_conversation(texts):
                         messageBody.insertAdjacentHTML('beforeend', newResponseHTML);   
                     });
                 }
-
+                var inputText = document.getElementById('inputText');
+                console.log(inputText)
+                inputText.addEventListener('keydown', (event) => {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        sendText();
+                    }
+                });
             </script>
-        </head>
-        <body>
-            <div class="chat-window">
-
-                <div class="chat-body">
-    """
-    for message in texts:
-        message_class = "sent" if message["sender"] == "sent" else "received"
-        html += "<div class=\"message " + message_class + """\">
-            <span class="message-text">""" + message['message'] + """</span>
-        </div>"""
-    html += """
-                    
-                </div>
-                <div class="chat-input-container">
-                    <textarea class="chat-input" placeholder="Type a message" id="inputText"></textarea>
-                    <button class="send-button" onclick="sendText()">Send</button>
-                </div>
-            </div>
-        </body>
     </html>
     """
     return html
@@ -215,7 +223,6 @@ def send_input():
     data = request.get_json()
     text_input = data.get("text_input")
     print(text_input)
-    tts = ALProxy("ALTextToSpeech", PEPPER_IP, PORT)
 
     texts.append({
         "message": text_input,
@@ -229,7 +236,7 @@ def send_input():
         "message":  answer,
         "sender": "received"
     })
-    tts.say(str(answer))
+    # tts.say(str(answer))
 
     with open("conversation.json", "w+") as f:
         json.dump(texts, f)
