@@ -40,6 +40,7 @@ def create_conversation(texts):
             <meta name="viewport" content="width=1280, user-scalable=no" />
             <title>WhatsApp Conversation</title>
             <style>
+
                 * {
                     box-sizing: border-box;
                     margin: 0;
@@ -54,6 +55,95 @@ def create_conversation(texts):
                     background-color: #01a7c9;
                 }
 
+                #title {
+                    align-self: center;
+                }
+
+                button {
+                    background-color: #333333;
+                    padding: 0.5vh 0.5vw;
+                    margin: 0.5vh 0.5vw;
+                    border: none;
+                    border-radius: 10%;
+                    color: white;
+                    font-weight: bold;
+                    cursor: pointer;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                    height: 7vh;
+                    width: 8vw;
+                }
+
+                button:active {
+                    transform: scale(0.95);
+                }
+
+                .info-banner {
+                    height: 8vh;
+                    background-color: #BBBBBB;
+                    display: flex;
+                    flex-direction: row;
+                    width: 100vw;
+                }
+
+                .checkbox-label {
+                    display: flex;
+                    margin: 0.5vh 0.5vw;
+                    align-self: center;
+                }
+
+                .toggle-container {
+                    align-self: center;
+                }
+
+                .toggle-switch input {
+                    display: none;
+                }
+
+                .toggle-switch {
+                    position: relative;
+                    display: inline-block;
+                    width: 50px;
+                    height: 25px;
+                    
+                }
+
+                .toggle-switch .slider {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: #999;
+                    transition: 0.4s;
+                    border-radius: 25px;
+                }
+
+                .toggle-switch .slider:before {
+                    position: absolute;
+                    content: "";
+                    height: 18px;
+                    width: 18px;
+                    left: 4px;
+                    bottom: 3.5px;
+                    background-color: white;
+                    transition: 0.4s;
+                    border-radius: 50%;
+                }
+
+                .toggle-switch input:checked + .slider {
+                    background-color: #01a7c9;
+                }
+
+                .toggle-switch input:checked + .slider:before {
+                    transform: translateX(24px);
+                }
+
+                .push {
+                    margin-left: auto;
+                    display: flex;
+                    flex-direction: row;
+                }
+
                 .chat-window {
                     background-color: #01a7c9;
                     display: flex;
@@ -66,14 +156,14 @@ def create_conversation(texts):
                     display: flex;
                     overflow-y: scroll;
                     flex-direction: column;
-                    min-height: 680px;
-                    max-height: 680px;
+                    min-height: 84vh;
+                    max-height: 84vh;
                 }
 
                 .message {
-                    margin: 10px;
-                    padding: 10px;
-                    border-radius: 10px;
+                    padding: 0.5vh 0.5vw;
+                    margin: 0.5vh 0.5vw;
+                    border-radius: 1vw;
                     position: relative;
                     display: block;
                     clear: both;
@@ -103,46 +193,21 @@ def create_conversation(texts):
                     width: 100%;
                     background-color: #c0c0c0;
                     border-top: 1px solid #e0e0e0;
-                    height: 60px;
+                    height: 8vh;
                 }
 
                 .chat-input {
-                    padding: 10px;
                     border: none;
+                    padding: 0.75vh 0.75vw;
+                    margin: 0.5vh 0.5vw;
                     border-radius: 20px;
                     background-color: #fff;
                     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
                     font-size: 16px;
                     resize: none;
                     outline: none;
-                    margin: 5px;
-                    height: 50px;
+                    height: 7vh;
                     width: 90vw;
-                }
-
-                button {
-                    padding: 10px 20px;
-                    background-color: #333333;
-                    border: none;
-                    border-radius: 10%;
-                    color: white;
-                    font-weight: bold;
-                    cursor: pointer;
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-                    height: 50px;
-                    float: right;
-                    margin: 5px;
-                }
-
-                button:active {
-                    transform: scale(0.95);
-                }
-
-
-                .info-banner {
-                    height: 60px;
-                    background-color: #BBBBBB;
-                    font-size: 3vw;
                 }
 
             </style>
@@ -150,7 +215,25 @@ def create_conversation(texts):
         <body>
 
             <div class="chat-window">
-                <div class="info-banner">Pepper robot: De robot assistent van de hublab!<a id="return-button" href="http://IP_ADDRESS_HERE:5000/homepage"><button>Terug</button></a></div>
+                <div class="info-banner">
+                    <div id="title">
+                        <h1>Pepper robot: De robot assistent van de hublab!</h1>
+                    </div>
+                    <div class="checkboxes push">
+                        <span class="checkbox-label">Lopende tekst</span>
+                        <div class="toggle-container">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="ongoing-text">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <a id="return-button" href="http://IP_ADDRESS_HERE:5000/homepage">
+                            <button>Terug</button>
+                        </a>
+                    </div>
+                </div>
                 <div class="chat-body">
     """
     for message in texts:
@@ -172,18 +255,21 @@ def create_conversation(texts):
                 var lastDiv = document.querySelector('#bottom');
                 var chatBody = document.querySelector('.chat-body');
                 var sendButton = document.querySelector('#send-button');
+                var checkbox = document.querySelector('#ongoing-text')
+
+                chatBody.scrollTop = chatBody.scrollHeight;
 
                 function disableScrolling() {
-                    lastDiv.style.height = '530px';
-                    chatBody.style['min-height'] = '210px';
-                    chatBody.style['max-height'] = '210px';
+                    lastDiv.style.height = '66vh';
+                    chatBody.style['min-height'] = '26vh';
+                    chatBody.style['max-height'] = '26vh';
                     chatBody.scrollTop = chatBody.scrollHeight;
                 }
 
                 function enableScrolling() {
-                    lastDiv.style.height = '60px';
-                    chatBody.style['min-height'] = '680px';
-                    chatBody.style['max-height'] = '680px';
+                    lastDiv.style.height = '8vh';
+                    chatBody.style['min-height'] = '84vh';
+                    chatBody.style['max-height'] = '84vh';
                     chatBody.scrollTop = chatBody.scrollHeight;
                 }
 
@@ -193,14 +279,14 @@ def create_conversation(texts):
                 });
 
                 chatBody.addEventListener('click', function(event) {
-                    if(chatBody.style['min-height'] === '210px') {
+                    if(chatBody.style['min-height'] === '26vh') {
                         console.log(chatBody.style['min-height']);
                         enableScrolling();
                     }
                 });
 
                 infobanner.addEventListener('click', function(event) {
-                    if(chatBody.style['min-height'] === '210px') {
+                    if(chatBody.style['min-height'] === '26vh') {
                         enableScrolling();
                     }
                 });
@@ -233,14 +319,22 @@ def create_conversation(texts):
                     })
                     .then(function(data) {
                         var answer = data.answer
-                        var newResponseHTML = `
-                            <div class="message received">
-                            <span class="message-text">${answer}</span>
-                        </div>`;
+                        if (checkbox.checked) {
+                            var newResponseHTML = `
+                                <div class="message received">
+                                <span class="message-text"></span>
+                            </div>`;
 
-                        chatBody.insertAdjacentHTML('beforeend', newResponseHTML);   
-                        chatBody.scrollTop = chatBody.scrollHeight;
-                        //addTextWithRandomDelay(answer)
+                            chatBody.insertAdjacentHTML('beforeend', newResponseHTML);
+                            addTextWithRandomDelay(answer)
+                        } else {
+                            var newResponseHTML = `
+                                <div class="message received">
+                                <span class="message-text">${answer}</span>
+                            </div>`;
+                            chatBody.insertAdjacentHTML('beforeend', newResponseHTML);
+                            chatBody.scrollTop = chatBody.scrollHeight;
+                        }
                     });
                 }
 
