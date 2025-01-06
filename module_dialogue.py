@@ -60,9 +60,7 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
             self.posture = ALProxy("ALRobotPosture", self.strNaoIp, ROBOT_PORT)
             self.aup = ALProxy("ALAnimatedSpeech", self.strNaoIp, ROBOT_PORT)
             self.tablet_service = ALProxy("ALTabletService", self.strNaoIp, ROBOT_PORT)
-            print(self.tablet_service.showWebview("http://{}:5000".format(ip_address_host)))
-            print(self.tablet_service)
-            print("webpage should be displayed")
+            print(self.tablet_service.showWebview("http://{}:5000/homepage".format(ip_address_host)))
             
         except RuntimeError:
             print("Can't connect to Naoqi at ip \"" + self.strNaoIp + "\" on port " + str(ROBOT_PORT) + ".\n"
@@ -71,11 +69,6 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
     def stop(self):
         print("INF: ReceiverModule: stopping...")
         self.memory.unsubscribe(self.getName())
-        try:
-            self.tablet_service.hideWebview()
-            print("webpage should be hidden")
-        except AttributeError:
-            print("No tablet service found")
         print("INF: ReceiverModule: stopped!")
 
     def version(self):
@@ -113,6 +106,7 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
         else:
             self.misunderstandings = 0
             self.create_json(message, "sent")
+            self.tablet_service.showWebview("http://{}:5000".format(ip_address_host))
             answer = self.encode(chatbot.respond(message))
             print('DATA RECEIVED AS ANSWER:\n' + answer)
         # text to speech the answer
@@ -132,9 +126,7 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
             # asking the Speech Recognition to LISTEN AGAIN
             SpeechRecognition.startRecording()
 
-        if not hasattr(self, 'tablet_service'):
-            self.tablet_service = ALProxy("ALTabletService", self.strNaoIp, ROBOT_PORT)
-        print(self.tablet_service.showWebview("http://{}:5000".format(ip_address_host)))
+        self.tablet_service.showWebview("http://{}:5000".format(ip_address_host))
 
     def react(self, s):
         if re.match(".*I.*sit down.*", s):  # Sitting down
@@ -155,7 +147,6 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
 
         with open("conversation.json","w") as f:
             json.dump(current_messages, f)
-        print(self.tablet_service.showWebview("http://{}:5000".format(ip_address_host)))
 
     
 def main():

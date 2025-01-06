@@ -1,7 +1,6 @@
 from flask import Flask, render_template_string, request, jsonify
 from flask_cors import CORS
 import json
-# from naoqi import ALProxy
 from tinyllama.client import TinyLlamaClient
 from oaichat.oaiclient import OaiClient
 import socket
@@ -13,8 +12,7 @@ PORT = 9559
 hostname = socket.gethostname()
 ip_address_host = socket.gethostbyname(hostname)
 print(ip_address_host)
-with open("conversation.json", 'w') as json_file:
-    json.dump([], json_file)
+
 parser = OptionParser()
 parser.add_option("--server",
                   help="Server to use (tinyllama or openai).",
@@ -22,10 +20,9 @@ parser.add_option("--server",
 parser.add_option("--userid",
                   help="participant id to use for llm.",
                   dest="userid")
-
 parser.set_defaults(
-                  server='openai',
-                  userid='2001')
+    server='openai',
+    userid='2001')
 
 # Create an instance of FastAPI
 app = Flask(__name__)
@@ -34,6 +31,7 @@ app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 CORS(app)
 
 def create_conversation(texts):
+    
     html = """
     <!DOCTYPE html>
     <html lang="en">
@@ -46,10 +44,10 @@ def create_conversation(texts):
                     box-sizing: border-box;
                     margin: 0;
                     padding: 0;
+                    font-family: Arial, sans-serif;
                 }
 
                 body {
-                    font-family: Arial, sans-serif;
                     display: flex;
                     flex-direction: column;
                     height: 100vh;
@@ -64,22 +62,23 @@ def create_conversation(texts):
 
                 .chat-body {
                     flex: 1;
-                    padding: 15px;
                     background-color: #01a7c9;
                     display: flex;
+                    overflow-y: scroll;
                     flex-direction: column;
-                    margin-bottom: 40px;
+                    min-height: 680px;
+                    max-height: 680px;
                 }
 
                 .message {
-                    margin-bottom: 10px;
+                    margin: 10px;
                     padding: 10px;
                     border-radius: 10px;
                     position: relative;
                     display: block;
-                    clear: both; /* Ensures no overlapping */
+                    clear: both;
                     max-width: 75%;
-                    word-wrap: break-word; /* Prevents long words from overflowing */
+                    word-wrap: break-word;
                 }
 
                 .message.sent {
@@ -101,17 +100,13 @@ def create_conversation(texts):
 
                 .chat-input-container {
                     display: flex;
-                    align-items: center;
-                    padding: 10px;
-                    position: fixed;
-                    bottom: 0;
                     width: 100%;
                     background-color: #c0c0c0;
                     border-top: 1px solid #e0e0e0;
+                    height: 60px;
                 }
 
                 .chat-input {
-                    flex-grow: 1;
                     padding: 10px;
                     border: none;
                     border-radius: 20px;
@@ -120,43 +115,114 @@ def create_conversation(texts):
                     font-size: 16px;
                     resize: none;
                     outline: none;
-                    margin: 10px;
+                    margin: 5px;
                     height: 50px;
+                    width: 90vw;
                 }
 
-                .send-button {
+                button {
                     padding: 10px 20px;
                     background-color: #333333;
                     border: none;
-                    border-radius: 50%;
+                    border-radius: 10%;
                     color: white;
                     font-weight: bold;
                     cursor: pointer;
                     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                    height: 50px;
+                    float: right;
+                    margin: 5px;
                 }
 
-                .send-button:active {
+                button:active {
                     transform: scale(0.95);
                 }
 
-                .chat-input-container {
+
+                .info-banner {
                     height: 60px;
+                    background-color: #BBBBBB;
+                    font-size: 3vw;
                 }
+
             </style>
-            <script>
+        </head>
+        <body>
+
+            <div class="chat-window">
+                <div class="info-banner">Pepper robot: De robot assistent van de hublab!<a id="return-button" href="http://IP_ADDRESS_HERE:5000/homepage"><button>Terug</button></a></div>
+                <div class="chat-body">
+    """
+    for message in texts:
+        message_class = "sent" if message["sender"] == "sent" else "received"
+        html += "<div class=\"message " + message_class + """\">
+            <span class="message-text">""" + message['message'] + """</span>
+        </div>"""
+    html += """
+                </div>
+                <div class="chat-input-container" id="bottom">
+                    <textarea class="chat-input" placeholder="Typ een vraag" id="inputText"></textarea>
+                    <button id="send-button">Verzenden</button>
+                </div>
+            </div>
+        </body>
+        <script>
+                var textbox = document.querySelector('textarea');
+                var infobanner = document.querySelector('.info-banner');
+                var lastDiv = document.querySelector('#bottom');
+                var chatBody = document.querySelector('.chat-body');
+                var sendButton = document.querySelector('#send-button');
+
+                function disableScrolling() {
+                    lastDiv.style.height = '530px';
+                    chatBody.style['min-height'] = '210px';
+                    chatBody.style['max-height'] = '210px';
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+
+                function enableScrolling() {
+                    lastDiv.style.height = '60px';
+                    chatBody.style['min-height'] = '680px';
+                    chatBody.style['max-height'] = '680px';
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+
+                sendButton.addEventListener('click', function(event) {
+                    sendText();
+                    enableScrolling();
+                });
+
+                chatBody.addEventListener('click', function(event) {
+                    if(chatBody.style['min-height'] === '210px') {
+                        console.log(chatBody.style['min-height']);
+                        enableScrolling();
+                    }
+                });
+
+                infobanner.addEventListener('click', function(event) {
+                    if(chatBody.style['min-height'] === '210px') {
+                        enableScrolling();
+                    }
+                });
+
+                textbox.addEventListener('focus', disableScrolling);
+
                 function sendText() {
                     var textbox = document.getElementById("inputText");
                     var text = textbox.value;
+                    if(text === "") {
+                        return;
+                    }
                     textbox.value = '';
-                    var messageBody = document.querySelector('.chat-body');
                     var newMessageHTML = `
                         <div class="message sent">
                         <span class="message-text">` + text + `</span>
                     </div>`;
 
-                    messageBody.insertAdjacentHTML('beforeend', newMessageHTML);
+                    chatBody.insertAdjacentHTML('beforeend', newMessageHTML);
+                    chatBody.scrollTop = chatBody.scrollHeight;
 
-                    var url = "http://""" + ip_address_host + """:5000/send-input";
+                    var url = "http://IP_ADDRESS_HERE:5000/send-input";
                     fetch(url, {
                         method: "POST",
                         headers: {"Content-Type": "application/json"},
@@ -169,34 +235,38 @@ def create_conversation(texts):
                         var answer = data.answer
                         var newResponseHTML = `
                             <div class="message received">
-                            <span class="message-text">` + answer + `</span>
+                            <span class="message-text">${answer}</span>
                         </div>`;
 
-                        messageBody.insertAdjacentHTML('beforeend', newResponseHTML);   
+                        chatBody.insertAdjacentHTML('beforeend', newResponseHTML);   
+                        chatBody.scrollTop = chatBody.scrollHeight;
+                        //addTextWithRandomDelay(answer)
                     });
                 }
 
-            </script>
-        </head>
-        <body>
-            <div class="chat-window">
+                function addTextWithRandomDelay(text) {
+                    var spanElements = document.querySelectorAll('span');
+                    var spanElement = spanElements[spanElements.length - 1];
 
-                <div class="chat-body">
-    """
-    for message in texts:
-        message_class = "sent" if message["sender"] == "sent" else "received"
-        html += "<div class=\"message " + message_class + """\">
-            <span class="message-text">""" + message['message'] + """</span>
-        </div>"""
-    html += """
-                    
-                </div>
-                <div class="chat-input-container">
-                    <textarea class="chat-input" placeholder="Type a message" id="inputText"></textarea>
-                    <button class="send-button" onclick="sendText()">Send</button>
-                </div>
-            </div>
-        </body>
+                    var words = text.split("");
+                    var index = 0;
+
+                    function addWord() {
+                        if (index < words.length) {
+                            spanElement.textContent += words[index];
+                            chatBody.scrollTop = chatBody.scrollHeight;
+                            index += 1;
+
+                            // Schedule the next word to be added after a random delay
+                            var delay = Math.floor(Math.random() * 5) + 16;
+                            setTimeout(addWord, delay);
+                        }
+                    }
+
+                    addWord(); // Start adding words
+
+                }
+            </script>
     </html>
     """
     return html
@@ -207,6 +277,16 @@ def home():
     with open("conversation.json", "r+") as f:
         texts = json.load(f)
     html = create_conversation(texts)
+    html = html.replace("IP_ADDRESS_HERE", ip_address_host)
+    return render_template_string(html)
+
+@app.route("/homepage")
+def homepage():
+    with open("conversation.json", 'w') as json_file:
+        json.dump([], json_file)
+    with open("homepage.html", "r+") as f:
+        html = f.read()
+    html = html.replace("IP_ADDRESS_HERE", ip_address_host)
     return render_template_string(html)
 
 @app.route("/send-input", methods= ["POST"])
@@ -214,9 +294,9 @@ def send_input():
     with open("conversation.json", "r+") as f:
         texts = json.load(f)
     data = request.get_json()
+    print(data)
     text_input = data.get("text_input")
     print(text_input)
-    # tts = ALProxy("ALTextToSpeech", PEPPER_IP, PORT)
 
     texts.append({
         "message": text_input,
@@ -230,7 +310,6 @@ def send_input():
         "message":  answer,
         "sender": "received"
     })
-    # tts.say(str(answer))
 
     with open("conversation.json", "w+") as f:
         json.dump(texts, f)
@@ -238,13 +317,16 @@ def send_input():
     return jsonify({"answer":answer})
 
 
-# Run the app (when using uvicorn)
+
 if __name__ == "__main__":
     (opts, args_) = parser.parse_args()
     participantId = opts.userid
     if opts.server == 'tinyllama':
         chatbot = TinyLlamaClient(user=participantId)
-    else:
+    elif opts.server == 'openai':
         chatbot = OaiClient(user=participantId)
+    else:
+        print("incorrect server provided")
+        exit()
 
     app.run(host='0.0.0.0', port=5000, debug=False)
