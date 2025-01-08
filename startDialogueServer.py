@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
+import json
 from oaichat.oaiserver import OaiServer
 from optparse import OptionParser
 from tinyllama.tinyllamaserver import TinyLlamaServer
@@ -16,6 +16,8 @@ parser.set_defaults(server='openai')
 parser.set_defaults(prompt='pepper')
   
 if __name__ == '__main__':
+    with open("conversation.json", 'w') as json_file:
+        json.dump([], json_file)
     (opts, args_) = parser.parse_args()
     if opts.server == 'tinyllama':
         server = TinyLlamaServer(user='User 1',prompt=opts.prompt + '.prompt')

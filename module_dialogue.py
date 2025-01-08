@@ -22,9 +22,6 @@ from tinyllama.client import TinyLlamaClient
 
 from oaichat.oaiclient import OaiClient
 
-with open("conversation.json", 'w') as json_file:
-    json.dump([], json_file)
-
 hostname = socket.gethostname()
 ## getting the IP address using socket.gethostbyname() method
 ip_address_host = socket.gethostbyname(hostname)
