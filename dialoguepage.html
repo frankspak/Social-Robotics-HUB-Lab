@@ -188,7 +188,7 @@
                     <span class="checkbox-label">Typewriter effect</span>
                     <div class="toggle-container">
                         <label class="toggle-switch">
-                            <input type="checkbox" id="ongoing-text">
+                            <input type="checkbox" id="ongoing-text" CHECK_STATUS>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -216,30 +216,17 @@
             var sendButton = document.querySelector('#send-button');
             var checkbox = document.querySelector('#ongoing-text');
             var url = "http://IP_ADDRESS_HERE:5000/getcheckmarkstatus";
-            fetch(url, {
-                method: "GET",
-                headers: {"Content-Type": "application/json"}
-            })
-            .then(function(response) {
-                return response.json();  // Parse the JSON body of the response
-            })
-            .then(function(data) {
-                if(data.status){
-                    checkbox.checked = true;
-                }            
-                console.log(chatBody.children.length >= 1 && chatBody.children.length % 2 == 0 && checkbox.checked)
-                if (chatBody.children.length >= 1 && chatBody.children.length % 2 == 0 && checkbox.checked) {
-                    console.log("test")
-                    var spanElements = document.querySelectorAll('span');
-                    var spanElement = spanElements[spanElements.length - 1];
-                    var lastText = spanElement.innerText;
-                    spanElement.innerText = "";
-                    addTextWithRandomDelay(lastText);
-                }
-                console.log("test2")
-                chatBody.scrollTop = chatBody.scrollHeight;
-            })
 
+            if (chatBody.children.length >= 1 && chatBody.children.length % 2 == 0 && checkbox.checked) {
+                var spanElements = document.querySelectorAll('span');
+                var spanElement = spanElements[spanElements.length - 1];
+                var lastText = spanElement.innerText;
+                spanElement.innerText = "";
+                addTextWithRandomDelay(lastText);
+            }
+            chatBody.scrollTop = chatBody.scrollHeight;            
+            
+            
 
             function disableScrolling() {
                 lastDiv.style.height = '66vh';

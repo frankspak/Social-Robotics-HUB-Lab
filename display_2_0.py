@@ -42,6 +42,10 @@ def create_conversation(texts):
             <span class="message-text">""" + message['message'] + """</span>
         </div>"""
     html = html.replace("PLACE_TEXT_HERE", text_to_add)
+    if status_of_checkmark:
+        print("check should be checked")
+        html = html.replace("CHECK_STATUS", "checked")
+    html = html.replace("CHECK_STATUS", " ")
     return html
 
 # Define the route for the home page
