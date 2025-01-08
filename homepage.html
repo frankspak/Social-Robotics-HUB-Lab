@@ -40,16 +40,20 @@
         .button-container {
             text-align: center;
             margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
         }
         .button-container a {
-            display: inline-block;
             padding: 10px 20px;
+            margin: auto;
             background-color: #ff3f2c;
             color: #fff;
             text-decoration: none;
             border-radius: 5px;
             font-size: 16px;
             transition: background-color 0.3s;
+            max-width: 50px;
         }
         .button-container a:hover {
             background-color: #c0c0c0;
@@ -64,11 +68,11 @@
             <li>Assisteren bij workshops over technologie zoals VR, AR en robotica.</li>
             <li>Demonstreren van geavanceerde technologieen en interacties.</li>
             <li>Ondersteunen bij educatieve activiteiten en innovatieprojecten.</li>
-            <li>Interactie met bezoekers door middel van spraak, gebaren en gezichtsherkenning.</li>
-            <li>Verbinden met andere apparatuur en systemen voor uitgebreide toepassingen.</li>
+            <li>Interactie met bezoekers door middel van spraak en/of door middel van typen.</li>
         </ul>
         <div class="button-container">
-            <a href="http://IP_ADDRESS_HERE:5000/">Start!</a>
+            <label>Begin een gesprek door op de knop hieronder te klikken of begin met praten.</label>
+            <a href="http://IP_ADDRESS_HERE:5000">Start!</a>
         </div>
     </div>
 </body>

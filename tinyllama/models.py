@@ -48,6 +48,7 @@ class TinyLlamaModel:
         else:
             with codecs.open(promptPath,encoding='utf-8') as f:
                 prompt.append({'role':'system','content':f.read()})
+        print(prompt)
         return prompt
 
 
@@ -66,7 +67,7 @@ class TinyLlamaModel:
 
         )
         print(response['message']['content'])
-        print(response)
+
         r = TinyLlamaResponse(response)
 
         self.history.append({'role':'assistant','content':r.getText()})

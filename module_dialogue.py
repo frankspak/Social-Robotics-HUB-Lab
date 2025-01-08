@@ -114,6 +114,7 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
         
         self.log.write('ANS: ' + answer + '\n')
         self.create_json(answer, "received")
+        self.tablet_service.showWebview("http://{}:5000".format(ip_address_host))
         self.aup.say(answer)
         self.react(answer)
         # time.sleep(2)
@@ -126,8 +127,6 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
             # asking the Speech Recognition to LISTEN AGAIN
             SpeechRecognition.startRecording()
 
-        self.tablet_service.showWebview("http://{}:5000".format(ip_address_host))
-
     def react(self, s):
         if re.match(".*I.*sit down.*", s):  # Sitting down
             self.posture.goToPosture("Sit", 1.0)
@@ -139,7 +138,6 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
     def create_json(self,message, role):
         with open("conversation.json","r") as f:
             current_messages = json.load(f)
-        print('test')
         current_messages.append({
             "message":message,
             "sender": role
