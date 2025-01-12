@@ -41,15 +41,21 @@ class OaiChat:
     self.moderation = None
     #moderator = Thread(target=self.getModeration,args=(inputText,))
     #moderator.start()
-    self.history.append({'role':'user','content':inputText})
+    guidance = (
+        "Provide a response in a maximum of 4-5 complete sentences."
+        "to invite further engagement, such as 'Would you like to know more about this topic?' or 'What would you like to know more?'."
+    )
+
+    # Combine guidance with user input
+    prompt = f"{guidance}\nUser: {inputText}"
+    self.history.append({'role':'user','content':prompt})
     #print(self.history)
     response = self.client.chat.completions.create(
-      model="gpt-4o-2024-05-13",
+      model="chatgpt-4o-latest",
       #response_format={ "type": "json_object" },
       #user=self.user,
       messages=self.history,
       # temperature=0.7,
-      max_tokens=70,
       # top_p=1,
       # frequency_penalty=1,
       # presence_penalty=0
