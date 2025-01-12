@@ -4,6 +4,7 @@ import json
 from oaichat.oaiserver import OaiServer
 from optparse import OptionParser
 from tinyllama.tinyllamaserver import TinyLlamaServer
+import json
 
 parser = OptionParser()
 parser.add_option("--prompt",
