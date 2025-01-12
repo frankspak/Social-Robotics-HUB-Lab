@@ -47,49 +47,6 @@ class OaiServer(OaiChat):
             print('Sending response:', response)        
             self.send(response)
 
-    def respond(self, input_text):
-        """Custom respond method to enforce the desired output format."""
-        print(f"Processing input: {input_text}")
-
-        # Custom prompt to ensure 4-5 sentences ending with a question
-        guidance = (
-            "Provide a response in a maximum of 4-5 complete sentences."
-            "to invite further engagement, such as 'Would you like to know more about this topic?' or 'What would you like to know more?'."
-        )
-
-        # Combine guidance with user input
-        prompt = f"{guidance}\nUser: {input_text}"
-
-        # Pass the custom prompt to the parent respond method
-        self.history.append({'role': 'user', 'content': prompt})
-
-        response = self.client.chat.completions.create(
-            model="gpt-4",  # Specify the model
-            messages=self.history,
-            max_tokens=200,
-            temperature=0.4,
-        )
-
-        # Extract the generated response content
-        content = response.choices[0].message.content
-        print(f"Generated response: {content}")
-
-         # Append the assistant's response to history
-        self.history.append({'role': 'assistant', 'content': content})
-
-        # Save the conversation to a JSON file
-        conversation = {
-            "input": input_text,
-            "response": content,
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        with open("conversation.json", "a") as json_file:
-            json.dump(conversation, json_file)
-            json_file.write("\n")  # Write each conversation on a new line
-
-        # Return the response content
-        return {'choices': [{'message': {'content': content}}]}
-
     def stop(self):
         self.socket.close()
         self.thread = None
