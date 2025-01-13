@@ -100,6 +100,10 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
             else:
                 answer = "Please repeat that."
             print('ERROR, DEFAULT ANSWER:\n' + answer)
+        elif message == "scherm aan":
+            self.aup.say("Oké, scherm aan!")
+            self.tablet_service.showWebview("http://{}:5000".format(ip_address_host))
+            return
         else:
             self.misunderstandings = 0
             self.create_json(message, "sent")

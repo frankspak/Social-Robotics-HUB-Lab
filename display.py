@@ -1,7 +1,6 @@
 from flask import Flask, render_template_string, request, jsonify
 from flask_cors import CORS
 import json
-# from naoqi import ALProxy
 from tinyllama.client import TinyLlamaClient
 from oaichat.oaiclient import OaiClient
 import socket
@@ -10,11 +9,12 @@ from optparse import OptionParser
 PEPPER_IP = "192.168.1.140"
 PORT = 9559
 
+global status_of_checkmark
+status_of_checkmark = False
 hostname = socket.gethostname()
 ip_address_host = socket.gethostbyname(hostname)
 print(ip_address_host)
-with open("conversation.json", 'w') as json_file:
-    json.dump([], json_file)
+
 parser = OptionParser()
 parser.add_option("--server",
                   help="Server to use (tinyllama or openai).",
@@ -22,10 +22,9 @@ parser.add_option("--server",
 parser.add_option("--userid",
                   help="participant id to use for llm.",
                   dest="userid")
-
 parser.set_defaults(
-                  server='openai',
-                  userid='2001')
+    server='openai',
+    userid='2001')
 
 # Create an instance of FastAPI
 app = Flask(__name__)
@@ -34,171 +33,19 @@ app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 CORS(app)
 
 def create_conversation(texts):
-    html = """
-    <!DOCTYPE html>
-    <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=1280, user-scalable=no" />
-            <title>WhatsApp Conversation</title>
-            <style>
-                * {
-                    box-sizing: border-box;
-                    margin: 0;
-                    padding: 0;
-                }
-
-                body {
-                    font-family: Arial, sans-serif;
-                    display: flex;
-                    flex-direction: column;
-                    height: 100vh;
-                    background-color: #01a7c9;
-                }
-
-                .chat-window {
-                    background-color: #01a7c9;
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .chat-body {
-                    flex: 1;
-                    padding: 15px;
-                    background-color: #01a7c9;
-                    display: flex;
-                    flex-direction: column;
-                    margin-bottom: 40px;
-                }
-
-                .message {
-                    margin-bottom: 10px;
-                    padding: 10px;
-                    border-radius: 10px;
-                    position: relative;
-                    display: block;
-                    clear: both; /* Ensures no overlapping */
-                    max-width: 75%;
-                    word-wrap: break-word; /* Prevents long words from overflowing */
-                }
-
-                .message.sent {
-                    background-color: #ff3f2c;
-                    color: #fff;
-                    border-bottom-right-radius: 0;
-                    align-self: flex-end;
-                }
-
-                .message.received {
-                    background-color: #fff;
-                    border-bottom-left-radius: 0;
-                    align-self: flex-start;
-                }
-
-                .message-text {
-                    font-size: 3vw;
-                }
-
-                .chat-input-container {
-                    display: flex;
-                    align-items: center;
-                    padding: 10px;
-                    position: fixed;
-                    bottom: 0;
-                    width: 100%;
-                    background-color: #c0c0c0;
-                    border-top: 1px solid #e0e0e0;
-                }
-
-                .chat-input {
-                    flex-grow: 1;
-                    padding: 10px;
-                    border: none;
-                    border-radius: 20px;
-                    background-color: #fff;
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                    font-size: 16px;
-                    resize: none;
-                    outline: none;
-                    margin: 10px;
-                    height: 50px;
-                }
-
-                .send-button {
-                    padding: 10px 20px;
-                    background-color: #333333;
-                    border: none;
-                    border-radius: 50%;
-                    color: white;
-                    font-weight: bold;
-                    cursor: pointer;
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-                }
-
-                .send-button:active {
-                    transform: scale(0.95);
-                }
-
-                .chat-input-container {
-                    height: 60px;
-                }
-            </style>
-            <script>
-                function sendText() {
-                    var textbox = document.getElementById("inputText");
-                    var text = textbox.value;
-                    textbox.value = '';
-                    var messageBody = document.querySelector('.chat-body');
-                    var newMessageHTML = `
-                        <div class="message sent">
-                        <span class="message-text">` + text + `</span>
-                    </div>`;
-
-                    messageBody.insertAdjacentHTML('beforeend', newMessageHTML);
-
-                    var url = "http://""" + ip_address_host + """:5000/send-input";
-                    fetch(url, {
-                        method: "POST",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({ "text_input": text })
-                    })
-                    .then(function(response) {
-                        return response.json();  // Parse the JSON body of the response
-                    })
-                    .then(function(data) {
-                        var answer = data.answer
-                        var newResponseHTML = `
-                            <div class="message received">
-                            <span class="message-text">` + answer + `</span>
-                        </div>`;
-
-                        messageBody.insertAdjacentHTML('beforeend', newResponseHTML);   
-                    });
-                }
-
-            </script>
-        </head>
-        <body>
-            <div class="chat-window">
-
-                <div class="chat-body">
-    """
+    with open("dialoguepage.html", "r+") as f:
+        html = f.read()
+    text_to_add = ""
     for message in texts:
         message_class = "sent" if message["sender"] == "sent" else "received"
-        html += "<div class=\"message " + message_class + """\">
+        text_to_add += "<div class=\"message " + message_class + """\">
             <span class="message-text">""" + message['message'] + """</span>
         </div>"""
-    html += """
-                    
-                </div>
-                <div class="chat-input-container">
-                    <textarea class="chat-input" placeholder="Type a message" id="inputText"></textarea>
-                    <button class="send-button" onclick="sendText()">Send</button>
-                </div>
-            </div>
-        </body>
-    </html>
-    """
+    html = html.replace("PLACE_TEXT_HERE", text_to_add)
+    if status_of_checkmark:
+        print("check should be checked")
+        html = html.replace("CHECK_STATUS", "checked")
+    html = html.replace("CHECK_STATUS", " ")
     return html
 
 # Define the route for the home page
@@ -207,6 +54,14 @@ def home():
     with open("conversation.json", "r+") as f:
         texts = json.load(f)
     html = create_conversation(texts)
+    html = html.replace("IP_ADDRESS_HERE", ip_address_host)
+    return render_template_string(html)
+
+@app.route("/homepage")
+def homepage():
+    with open("homepage.html", "r+") as f:
+        html = f.read()
+    html = html.replace("IP_ADDRESS_HERE", ip_address_host)
     return render_template_string(html)
 
 @app.route("/send-input", methods= ["POST"])
@@ -216,7 +71,6 @@ def send_input():
     data = request.get_json()
     text_input = data.get("text_input")
     print(text_input)
-    # tts = ALProxy("ALTextToSpeech", PEPPER_IP, PORT)
 
     texts.append({
         "message": text_input,
@@ -230,7 +84,6 @@ def send_input():
         "message":  answer,
         "sender": "received"
     })
-    # tts.say(str(answer))
 
     with open("conversation.json", "w+") as f:
         json.dump(texts, f)
@@ -238,13 +91,30 @@ def send_input():
     return jsonify({"answer":answer})
 
 
-# Run the app (when using uvicorn)
+@app.route("/getcheckmarkstatus")
+def status():
+    return jsonify({"status":status_of_checkmark})
+
+@app.route("/setcheckmarkstatus", methods= ["POST"])
+def set_status():
+    data = request.get_json()
+    status = data.get("status")
+    print(status)
+    global status_of_checkmark
+    status_of_checkmark = status
+    
+    return jsonify({"status":status_of_checkmark})
+
+
 if __name__ == "__main__":
     (opts, args_) = parser.parse_args()
     participantId = opts.userid
     if opts.server == 'tinyllama':
         chatbot = TinyLlamaClient(user=participantId)
-    else:
+    elif opts.server == 'openai':
         chatbot = OaiClient(user=participantId)
+    else:
+        print("incorrect server provided")
+        exit()
 
     app.run(host='0.0.0.0', port=5000, debug=False)

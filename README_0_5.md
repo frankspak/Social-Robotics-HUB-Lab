@@ -8,9 +8,21 @@ Welcome to the Hublab project repository! This innovative project is centered ar
 
 ## Our mission is to enhance the visitor experience in two significant ways:
 
-Human-Robot Interaction: We aim to explore and improve how visitors interact with technology, specifically through their engagement with Pepper. This component focuses on assessing participants' attitudes towards technology and refining Pepper's conversational abilities. By incorporating gestures and movements, we strive to make interactions not only more engaging but also more informative. The main goal of the project is to add the functionality of interacting with the pepper robot with the tablet.
-Technical Development: The technical aspect of the project involves developing a chatbot like website which can be displayed on the tablet where users can input their questions.
+Human-Robot Interaction: We aim to explore and improve how visitors interact with technology, specifically through their engagement with Pepper. This component focuses on assessing participants' attitudes towards technology and refining Pepper's conversational abilities. By incorporating gestures and movements, we strive to make interactions not only more engaging but also more informative.
+Technical Development: For those with a technical inclination, this aspect of the project involves enhancing Pepper's ability to understand and respond to visitor inquiries. We're exploring the integration of advanced AI solutions, including ChatGPT, to enable Pepper to provide accurate and helpful information about the lab's resources and how to utilize various technologies. This will be particularly beneficial in workshop settings, where Pepper can assist participants more effectively.
+Project Goals:
 
+- To make Pepper a knowledgeable and engaging assistant for visitors and workshop participants.
+- To study and improve human-robot interactions within an educational and technological setting.
+- To provide both less technical and technical students with hands-on experience in working with AI and robotics.
+
+
+#Code
+
+The code interfaces [OpenAI GPT-3](https://openai.com/) with the [Aldebaran](https://www.aldebaran.com/en) Pepper and Nao robots, allowing open verbal conversation with these robots on a wide range of subjects.
+
+## Video of the Result
+ToDO
 
 ## Installation
 
@@ -70,15 +82,32 @@ Now we need the Python NaoQi API for communicating with the Pepper robot.
     * export PYTHONPATH=${PYTHONPATH}:/path/to/python-sdk/lib/python2.7/site-packages
     * export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:/path/to/python-sdk/lib
     * export QI_SDK_PREFIX=/path/to/python-sdk
-* Start ```python2``` and make sure you can import ```naoqi```. OSX may throw a lot of warnings the first time NaoQi is imported. Google for the exact way to approve these.
+* Start ```python2``` and make sure you can import ```naoqi```. OSX may throw a lot of warnings the first time NaoQi is imported. Google for the exact way to approve these. 
+
+I haven't been able to make Choreographe to run on recent versions of OSX, but it's not needed for running this app. 
 
 ## Run
 Make sure you've gone through all steps in the Setup guide above before you start. 
 
 Note that the Speech recognition module uses a NaoQi (*Autonomous Life Proxy*) to switch focus to *nao_focus*. You may not have this script on your own robot and the the code will throw an exception as a result. This call is made solely to prevent the default dialogue system of the robot to interfere with PepperChat. You may safely comment this away or upload your own preferred focus script to the robot, e.g. using Choreograph. 
 
-* Start the OpenAI GPT-3 chatbot service by opening a terminal and execute ```python3 startDialogueServer.py --server {chosen llm} --userid {userid}```. If everything goes well, the server should respond with _Starting OpenAI chat server... or  _Starting Tinyllama server... based on your server prefrence within the parameter
+* Start the OpenAI GPT-3 chatbot service by opening a terminal and execute ```python3 startDialogueServer.py --server ```. If everything goes well, the server should respond with _Starting OpenAI chat server... or  _Starting Tinyllama server... based on your server prefrence within the parameter
 Type an input message to test your chatbot..._
-* Next, start the webserver using the following command ```python display.py --server {chosen llm} --userid {userid}```.
 * Next, start Google's text to speech recognition service for Pepper by opening a new terminal and execute ```python module_speechrecognition.py --pip pepper.local``` (where _pepper.local_ refers to your robot's ip ).
-* We are now ready to start the dialogue service by opening another terminal and executing ```python module_dialogue.py --pip pepper.local  --server {chosen llm}``` (where _pepper.local_ refers to your robot's ip ). This script will ask for a participant id and then connect to the OpenAI chatbot server we started earlier. If everything goes well it will continue and register another NaoQi module that runs the dialogue. _Pepper should now be ready to chat!_
+* We are now ready to start the dialogue service by opening another terminal and executing ```python module_dialogue.py --pip pepper.local  --server the model that you want``` (where _pepper.local_ refers to your robot's ip ). This script will ask for a participant id and then connect to the OpenAI chatbot server we started earlier. If everything goes well it will continue and register another NaoQi module that runs the dialogue. _Pepper should now be ready to chat!_
+
+## License
+
+This project is released under the MIT license. Please refer to [LICENSE.md](LICENSE.md) for license details.
+
+Parts of the source code have specific license formulations. Please see the file headers for details.
+
+--------------------------------------------
+## Importent Links :
+
+- Resarch plan  : https://www.overleaf.com/6338562289yxpdhtvhmmjq#f09f90
+- Current \& Future Customer Journey Map "MAP" : https://www.canva.com/design/DAF82leUJ1A/O19ehrI2XOTL2FS1DScvvQ/edit
+- Design Methods for Social Robotics Document : https://www.overleaf.com/4988576184hwtjqsymjzpg#a22a78
+- VPC : https://www.canva.com/design/DAF8y5bZGHY/lTmAirM6dRAS8QF9V8TFSw/edit
+
+
