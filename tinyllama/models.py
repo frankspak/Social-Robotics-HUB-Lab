@@ -61,6 +61,7 @@ class TinyLlamaModel:
         guidance = (
             "Provide a response in a maximum of 4-5 complete sentences."
             "to invite further engagement, such as 'Would you like to know more about this topic?' or 'What would you like to know more?'."
+            "Answer in the language spoken to you by the user"
         )
 
         # Combine guidance with user input
