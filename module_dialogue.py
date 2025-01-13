@@ -103,6 +103,14 @@ class DialogueSpeechReceiverModule(naoqi.ALModule):
         elif message == "scherm aan":
             self.aup.say("Oké, scherm aan!")
             self.tablet_service.showWebview("http://{}:5000".format(ip_address_host))
+            if self.autodec:
+                print("starting service speech-rec again")
+                SpeechRecognition.start()
+                print("autodec enabled")
+                SpeechRecognition.enableAutoDetection()
+            else:
+                # asking the Speech Recognition to LISTEN AGAIN
+                SpeechRecognition.startRecording()
             return
         else:
             self.misunderstandings = 0
